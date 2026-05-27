@@ -1,0 +1,30 @@
+GET http://localhost:8080/api/v1/professores HTTP/1.1
+
+###
+
+GET http://localhost:8080/api/v1/professores/1 HTTP/1.1
+
+###
+
+POST http://localhost:8080/api/v1/professores HTTP/1.1
+content-type: application/json
+
+{
+    "nome": "sample",
+    "senha": "122345"
+}
+
+###
+
+DELETE http://localhost:8080/api/v1/professores/2 HTTP/1.1
+
+###
+
+PUT http://localhost:8080/api/v1/professores HTTP/1.1
+content-type: application/json
+
+{
+   "id" : 3,
+   "nome": "sample10",
+   "senha":  "122345"
+}
