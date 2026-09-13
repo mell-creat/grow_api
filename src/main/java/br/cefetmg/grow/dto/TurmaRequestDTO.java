@@ -30,6 +30,6 @@ public class TurmaRequestDTO {
     @NotNull(message = "ID do usuário é obrigatório")
     private Long usuarioId;
 
-@NotNull(message = "ID da disciplina é obrigatório")
+  
     private Long disciplinaId;
 }
