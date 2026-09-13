@@ -1,5 +1,3 @@
-// src/main/java/br/cefetmg/grow/service/UsuarioService.java
-
 package br.cefetmg.grow.service;
 
 import br.cefetmg.grow.dto.UsuarioRequestDTO;
@@ -21,7 +19,9 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final ModelMapper modelMapper;
+    private final EmailService emailService;
 
+    // ============ LISTAR ============
     @Transactional(readOnly = true)
     public List<UsuarioResponseDTO> listar() {
         return usuarioRepository.findAll().stream()
@@ -29,6 +29,7 @@ public class UsuarioService {
                 .toList();
     }
 
+    // ============ BUSCAR ============
     @Transactional(readOnly = true)
     public UsuarioResponseDTO buscarPorId(Long id) {
         Usuario usuario = usuarioRepository.findById(id)
@@ -43,6 +44,7 @@ public class UsuarioService {
         return new UsuarioResponseDTO(usuario);
     }
 
+    // ============ INSERIR ============
     @Transactional
     public UsuarioResponseDTO inserir(UsuarioRequestDTO dto) {
         if (usuarioRepository.existsByEmail(dto.getEmail())) {
@@ -58,9 +60,18 @@ public class UsuarioService {
         usuario.setDataCadastro(LocalDateTime.now());
 
         Usuario salvo = usuarioRepository.save(usuario);
+
+        // 👇 Envia email de boas-vindas (não bloqueia se der erro)
+        try {
+            emailService.enviarBoasVindas(salvo.getEmail(), salvo.getNome());
+        } catch (Exception e) {
+            System.err.println("⚠️ Erro ao enviar boas-vindas: " + e.getMessage());
+        }
+
         return new UsuarioResponseDTO(salvo);
     }
 
+    // ============ ATUALIZAR ============
     @Transactional
     public UsuarioResponseDTO atualizar(Long id, UsuarioRequestDTO dto) {
         Usuario usuario = usuarioRepository.findById(id)
@@ -70,12 +81,13 @@ public class UsuarioService {
             throw new IllegalArgumentException("Email já cadastrado por outro usuário");
         }
 
-        // 🔥 ATUALIZA TODOS OS CAMPOS
         usuario.setNome(dto.getNome());
         usuario.setEmail(dto.getEmail());
+
         if (dto.getSenha() != null && !dto.getSenha().isEmpty()) {
             usuario.setSenha(dto.getSenha());
         }
+
         usuario.setImagem(dto.getImagem());
         usuario.setBio(dto.getBio());
         usuario.setDataNascimento(dto.getDataNascimento());
@@ -88,6 +100,7 @@ public class UsuarioService {
         return new UsuarioResponseDTO(atualizado);
     }
 
+    // ============ EXCLUIR ============
     @Transactional
     public void excluir(Long id) {
         if (!usuarioRepository.existsById(id)) {

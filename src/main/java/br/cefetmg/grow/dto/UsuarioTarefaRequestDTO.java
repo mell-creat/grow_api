@@ -4,6 +4,7 @@ import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -23,11 +24,11 @@ public class UsuarioTarefaRequestDTO {
     private String feedback;
 
     @NotNull(message = "Tempo gasto é obrigatório")
-    @Positive(message = "Tempo gasto deve ser positivo")
+    @PositiveOrZero(message = "Tempo gasto deve ser positivo")
     private Integer tempoGasto;
 
     @NotNull(message = "Tentativas é obrigatório")
-    @Positive(message = "Tentativas deve ser positivo")
+    @PositiveOrZero(message = "Tentativas deve ser positivo")
     private Integer tentativas;
 
     private Integer xpRecebido = 0;

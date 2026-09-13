@@ -80,66 +80,74 @@ public class TurmaService {
     }
 
     @Transactional
-    public TurmaResponseDTO criar(TurmaRequestDTO dto) {
-        Long usuarioId = dto.getUsuarioId();
-        if (usuarioId == null) {
-            throw new IllegalArgumentException("ID do usuário criador é obrigatório");
-        }
-
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado. Id: " + usuarioId));
-
-        Long disciplinaId = dto.getDisciplinaId();
-        if (disciplinaId == null) {
-            throw new IllegalArgumentException("ID da disciplina é obrigatório");
-        }
-
-        Disciplina disciplina = disciplinaRepository.findById(disciplinaId)
-                .orElseThrow(() -> new ResourceNotFoundException("Disciplina não encontrada. Id: " + disciplinaId));
-
-        String codigo = gerarCodigoUnico();
-
-        Turma turma = new Turma();
-        turma.setNome(dto.getNome());
-        turma.setCodigo(codigo);
-        turma.setDescricao(dto.getDescricao());
-        turma.setAno(dto.getAno());
-        turma.setNivelEnsino(dto.getNivelEnsino());
-        turma.setDisciplina(disciplina); // Associa a disciplina encontrada
-        turma.setDataCriacao(LocalDate.now());
-
-        Turma salva = turmaRepository.save(turma);
-
-        ProfessorTurma professorTurma = new ProfessorTurma();
-        professorTurma.setUsuario(usuario);
-        professorTurma.setTurma(salva);
-        professorTurma.setDataVinculo(LocalDate.now());
-        professorTurma.setExcluir(true);
-        professorTurma.setEdicao(true);
-        professorTurma.setGerenciarTarefas(true);
-        professorTurmaRepository.save(professorTurma);
-
-        return new TurmaResponseDTO(salva);
+public TurmaResponseDTO criar(TurmaRequestDTO dto) {
+    Long usuarioId = dto.getUsuarioId();
+    if (usuarioId == null) {
+        throw new IllegalArgumentException("ID do usuário criador é obrigatório");
     }
+
+    Usuario usuario = usuarioRepository.findById(usuarioId)
+            .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado. Id: " + usuarioId));
+
+    // 👇 disciplina opcional: só busca se veio um ID válido (> 0)
+    Disciplina disciplina = null;
+    Long disciplinaId = dto.getDisciplinaId();
+    if (disciplinaId != null && disciplinaId > 0) {
+        disciplina = disciplinaRepository.findById(disciplinaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Disciplina não encontrada. Id: " + disciplinaId));
+    }
+
+    String codigo = gerarCodigoUnico();
+
+    Turma turma = new Turma();
+    turma.setNome(dto.getNome());
+    turma.setCodigo(codigo);
+    turma.setDescricao(dto.getDescricao());
+    turma.setAno(dto.getAno());
+    turma.setNivelEnsino(dto.getNivelEnsino());
+    turma.setDisciplina(disciplina); // 👈 pode ser null agora
+    turma.setDataCriacao(LocalDate.now());
+
+    Turma salva = turmaRepository.save(turma);
+
+    // Vincula o criador como professor com todas as permissões
+    ProfessorTurma professorTurma = new ProfessorTurma();
+    professorTurma.setUsuario(usuario);
+    professorTurma.setTurma(salva);
+    professorTurma.setDataVinculo(LocalDate.now());
+    professorTurma.setExcluir(true);
+    professorTurma.setEdicao(true);
+    professorTurma.setGerenciarTarefas(true);
+    professorTurmaRepository.save(professorTurma);
+
+    return new TurmaResponseDTO(salva);
+}
 
     @Transactional
-    public TurmaResponseDTO atualizar(Long id, TurmaRequestDTO dto) {
-        Turma turma = turmaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Turma não encontrada. Id: " + id));
+public TurmaResponseDTO atualizar(Long id, TurmaRequestDTO dto) {
+    Turma turma = turmaRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Turma não encontrada. Id: " + id));
 
-        if (!turma.getCodigo().equals(dto.getCodigo()) && turmaRepository.existsByCodigo(dto.getCodigo())) {
-            throw new IllegalArgumentException("Já existe uma turma com este código");
-        }
-
-        turma.setNome(dto.getNome());
-        turma.setDescricao(dto.getDescricao());
-        turma.setAno(dto.getAno());
-        turma.setNivelEnsino(dto.getNivelEnsino());
-
-        Turma atualizada = turmaRepository.save(turma);
-        return new TurmaResponseDTO(atualizada);
+    if (!turma.getCodigo().equals(dto.getCodigo()) && turmaRepository.existsByCodigo(dto.getCodigo())) {
+        throw new IllegalArgumentException("Já existe uma turma com este código");
     }
 
+    turma.setNome(dto.getNome());
+    turma.setDescricao(dto.getDescricao());
+    turma.setAno(dto.getAno());
+    turma.setNivelEnsino(dto.getNivelEnsino());
+
+   
+    Long disciplinaId = dto.getDisciplinaId();
+    if (disciplinaId != null && disciplinaId > 0) {
+        Disciplina disciplina = disciplinaRepository.findById(disciplinaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Disciplina não encontrada. Id: " + disciplinaId));
+        turma.setDisciplina(disciplina);
+    }
+
+    Turma atualizada = turmaRepository.save(turma);
+    return new TurmaResponseDTO(atualizada);
+}
     @Transactional
     public void excluir(Long id) {
         Turma turma = turmaRepository.findById(id)
