@@ -4,14 +4,17 @@ spring:
   datasource:
     url: ${DATASOURCE_URL:jdbc:mysql://localhost:3306/grow}
     username: ${DATASOURCE_USER:root}
-    password: ${DATASOURCE_PWD:root}
+    password: ${DATASOURCE_PWD:}
     driver-class-name: ${DATASOURCE_DRIVER:com.mysql.cj.jdbc.Driver}
-
   jpa:
     hibernate:
-      ddl-auto: update   # create, create-drop, validate, none, update
-      show-sql: true
-      properties:
+      ddl-auto: update
+    show-sql: true
+    properties:
       hibernate:
-       '{format_sql}': true
- 
+        format_sql: true
+
+cloudinary:
+  cloud-name: whwnnsyd
+  api-key: 855813416484976
+  api-secret: dcNP2mLcjPDMavbd9oH8S2RdffE
